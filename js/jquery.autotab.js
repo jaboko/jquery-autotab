@@ -1,9 +1,9 @@
 /**
  * Autotab - jQuery plugin 1.9.2
  * https://github.com/Mathachew/jquery-autotab
- * 
+ *
  * Copyright (c) 2008, 2015 Matthew Miller
- * 
+ *
  * Licensed under the MIT licensing:
  *   http://www.opensource.org/licenses/mit-license.php
  */
@@ -225,7 +225,7 @@
                         }
                         else {
                             defaults.target = filtered[n];
-                        }   
+                        }
                     },
                     selectPrevious = function () {
                         if (i > 0 && n < length) {
@@ -626,8 +626,7 @@
 
                 // Text is fully selected, so it needs to be replaced
                 if (selection.start === 0 && selection.end == this.value.length) {
-                    this.value = keyChar;
-                    setSettings(this, { changed: (this.value != defaults.originalValue) });
+                    setSettings(this, { changed: (keyChar != defaults.originalValue) });
                 }
                 else {
                     if (this.value.length == this.maxLength && selection.start === selection.end) {
@@ -636,8 +635,8 @@
                         return false;
                     }
 
-                    this.value = this.value.slice(0, selection.start) + keyChar + this.value.slice(selection.end);
-                    setSettings(this, { changed: (this.value != defaults.originalValue) });
+                    var newValue = this.value.slice(0, selection.start) + keyChar + this.value.slice(selection.end);
+                    setSettings(this, { changed: (newValue != defaults.originalValue) });
                 }
 
                 // Prevents the cursor position from being set to the end of the text box
@@ -664,7 +663,7 @@
                 $(this).trigger('autotab-next', defaults);
             }
 
-            return false;
+            return true;
         }).on('drop paste', function (e) {
             var defaults = getSettings(this);
 
@@ -682,7 +681,8 @@
                     hiddenInput.value = e.value.toLowerCase();
                     hiddenInput.originalValue = e.value;
 
-                    e.value = filterValue(e, e.value, originDefaults).substr(0, originDefaults.maxlength);
+                    $(e).val(filterValue(e, e.value, originDefaults).substr(0, originDefaults.maxlength))
+                        .trigger("change");
 
                     var handlePaste = function (e, previousValue) {
                         if (!e) {
@@ -711,7 +711,7 @@
                             return;
                         }
 
-                        e.value = filteredValue;
+                        $(e).val(filteredValue).trigger("change");
 
                         if (filteredValue.length == defaults.maxlength) {
                             defaults.arrowKey = false;
