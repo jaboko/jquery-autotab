@@ -168,7 +168,7 @@
         // Apply filter options
         if (method == 'filter') {
             if (typeof options === 'string' || typeof options === 'function') {
-                options = { format: options };
+                options = {format: options};
             }
 
             for (var i = 0, length = filtered.length; i < length; i++) {
@@ -284,7 +284,7 @@
                 options = {};
             }
             else if (typeof method === 'string' || typeof method === 'function') {
-                options = { format: method };
+                options = {format: method};
             }
             else if (typeof method === 'object') {
                 options = method;
@@ -467,6 +467,24 @@
                             else {
                                 target.focus().select();
                             }
+
+                            var keyChar;
+
+                            if (defaults.lastKeyChar)
+                                keyChar = filterValue(target, defaults.lastKeyChar, getSettings(target));
+
+                            defaults.lastKeyChar = null;
+
+                            if (keyChar && $(self).data('autotab-editable') && !defaults.arrowKey) {
+                                if (settings.ie11) {
+                                    target.val(keyChar, target.val().substring(1)).focus();
+                                }
+                                else {
+                                    target.focus().val(keyChar, target.val().substring(1));
+                                }
+
+                                setSettings(target, {changed: true});
+                            }
                         }
 
                         settings.focusChange = new Date();
@@ -497,11 +515,11 @@
                             previous.focus().val(value.substring(0, value.length - 1));
                         }
 
-                        setSettings(previous, { changed: true });
+                        setSettings(previous, {changed: true});
                     }
                     else {
                         if (defaults.arrowKey) {
-                            setSettings(this, { arrowKey: false });
+                            setSettings(this, {arrowKey: false});
                         }
 
                         if (settings.ie11) {
@@ -516,12 +534,12 @@
                 }
             }, 1);
         }).on('focus', function () {
-            setSettings(this, { originalValue: this.value });
+            setSettings(this, {originalValue: this.value});
         }).on('blur', function () {
             var defaults = getSettings(this);
 
             if (defaults.changed && this.value != defaults.originalValue) {
-                setSettings(this, { changed: false });
+                setSettings(this, {changed: false});
                 $(this).change();
             }
         }).on('keydown.autotab', function (e) {
@@ -545,7 +563,7 @@
                     return false;
                 }
 
-                setSettings(this, { changed: (this.value !== defaults.originalValue) });
+                setSettings(this, {changed: (this.value !== defaults.originalValue)});
 
                 if (this.value.length === 0) {
                     $(this).trigger('autotab-previous', defaults);
@@ -577,6 +595,7 @@
                 }
             }
         }).on('keypress.autotab', function (e) {
+
             var defaults = getSettings(this),
                 keyCode = e.which || e.keyCode;
 
@@ -614,11 +633,14 @@
 
             var hasValue = document.selection && document.selection.createRange ? true : (keyCode > 0);
 
-            keyChar = filterValue(this, keyChar, defaults);
+            var filtredKeyChar = filterValue(this, keyChar, defaults);
+            defaults.lastKeyChar = filtredKeyChar;
 
-            if (hasValue && (keyChar === null || keyChar === '')) {
+            if (hasValue && (filtredKeyChar === null || filtredKeyChar === '')) {
                 return false;
             }
+
+            var newValue;
 
             // Many, many thanks to Tim Down for this solution: http://stackoverflow.com/a/3923320/94656
             if (hasValue && (this.value.length <= this.maxLength)) {
@@ -626,7 +648,8 @@
 
                 // Text is fully selected, so it needs to be replaced
                 if (selection.start === 0 && selection.end == this.value.length) {
-                    setSettings(this, { changed: (keyChar != defaults.originalValue) });
+                    newValue = filtredKeyChar;
+                    setSettings(this, {changed: (filtredKeyChar != defaults.originalValue)});
                 }
                 else {
                     if (this.value.length == this.maxLength && selection.start === selection.end) {
@@ -635,8 +658,8 @@
                         return false;
                     }
 
-                    var newValue = this.value.slice(0, selection.start) + keyChar + this.value.slice(selection.end);
-                    setSettings(this, { changed: (newValue != defaults.originalValue) });
+                    var newValue = this.value.slice(0, selection.start) + filtredKeyChar + this.value.slice(selection.end);
+                    setSettings(this, {changed: (newValue != defaults.originalValue)});
                 }
 
                 // Prevents the cursor position from being set to the end of the text box
@@ -661,6 +684,12 @@
             if (this.value.length == defaults.maxlength) {
                 defaults.arrowKey = false;
                 $(this).trigger('autotab-next', defaults);
+            }
+
+            if (filtredKeyChar != keyChar)
+            {
+                $(this).val(newValue);
+                e.preventDefault();
             }
 
             return true;
