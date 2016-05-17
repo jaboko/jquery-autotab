@@ -477,10 +477,10 @@
 
                             if (keyChar && $(self).data('autotab-editable') && !defaults.arrowKey) {
                                 if (settings.ie11) {
-                                    target.val(keyChar, target.val().substring(1)).focus();
+                                    target.val(keyChar, target.val().substring(1)).focus().trigger("change");
                                 }
                                 else {
-                                    target.focus().val(keyChar, target.val().substring(1));
+                                    target.focus().val(keyChar, target.val().substring(1)).trigger("change");
                                 }
 
                                 setSettings(target, {changed: true});
@@ -688,7 +688,7 @@
 
             if (filtredKeyChar != keyChar)
             {
-                $(this).val(newValue);
+                $(this).val(newValue).trigger("change");
                 e.preventDefault();
             }
 
